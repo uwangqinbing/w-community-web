@@ -73,7 +73,7 @@ const type = ref('posts');
 
 const handleSubmit = async () => {
   try {
-    await api.post('/posts', {
+    await api.post('/api/posts', {
       title: title.value,
       content: content.value,
       tags: tags.value,

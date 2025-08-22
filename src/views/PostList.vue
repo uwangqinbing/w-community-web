@@ -1,4 +1,3 @@
-<!-- src/views/PostList.vue -->
 <template>
   <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
@@ -12,7 +11,7 @@
       </button>
     </div>
 
-    <!-- 分类筛选（添加Videos按钮，变为4个） -->
+    <!-- 分类筛选-->
     <div class="flex gap-2 mb-6">
       <button 
         @click="fetchPosts('all')" 
@@ -45,15 +44,19 @@
       </button>
     </div>
 
-    <!-- 帖子列表（修复头像绑定+统一样式） -->
-    <div class="space-y-4">  <!-- 改用space-y-4，与Discover.vue一致 -->
+    <!-- 帖子列表（修复头像绑定+统一样式 + 判空保护） -->
+    <div class="space-y-4"> 
       <router-link 
         :to="`/post/${post.id}`" 
         class="block"
         v-for="post in postStore.posts" 
         :key="post.id"
       >
-        <div class="p-4 bg-gray-800 rounded hover:bg-gray-700 transition-colors">  <!-- 与Discover.vue卡片样式一致 -->
+        <!-- 核心修复：用 v-if="post" 确保 post 存在再渲染 -->
+        <div 
+          v-if="post" 
+          class="p-4 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
+        >  
           <div class="flex items-center mb-2">
             <!-- 头像：统一绑定post.author.avatar（与Discover.vue一致） -->
             <router-link :to="`/user/${post.authorId}`" class="inline-block">
@@ -62,9 +65,8 @@
                 :alt="`${post.author?.username}'s avatar`" 
                 class="w-10 h-10 mr-2 rounded-full object-cover"
                 v-if="post.author?.avatar"
->
-
-<!-- 头像缺失时的默认容器 -->
+              >
+              <!-- 头像缺失时的默认容器 -->
               <div v-else class="w-10 h-10 mr-2 rounded-full bg-gray-600 flex items-center justify-center">
                 <span class="text-gray-300 text-sm">{{ post.author?.username?.charAt(0) || '?' }}</span>
               </div>
@@ -85,17 +87,68 @@
             >
           </div>
 
-          <!-- 互动数据（与Discover.vue一致） -->
+          <!-- 互动数据（与Discover.vue一致 + 判空保护） -->
           <div class="flex items-center mt-2 space-x-4 text-gray-300">
             <button @click.stop="toggleLike(post.id)" class="flex items-center">
-              <span :class="post.isLiked? 'text-red-500' : 'text-gray-600'">❤</span>
-              <span class="ml-1">{{ post.likes }} Likes</span>
+              <!-- 修复：post?.isLiked 避免 undefined 报错 -->
+              <span :class="post?.isLiked ? 'text-red-500' : 'text-gray-600'">❤</span>
+              <span class="ml-1">{{ post?.likes || 0 }} Likes</span>
             </button>
-            <span>{{ post.comments?.length || 0 }} Comments</span>
-            <span>{{ formatDate(post.date) }}</span>
+            <span>{{ post?.comments?.length || 0 }} Comments</span>
+            <span>{{ formatDate(post?.date) }}</span>
           </div>
         </div>
       </router-link>
+    </div>
+
+    <!-- 操作区（删除、举报按钮 + 判空保护） -->
+    <div 
+      v-for="post in postStore.posts" 
+      :key="post.id" 
+      class="flex items-center mt-2 space-x-4 text-gray-300"
+    >
+      <!-- 确保 post 存在再渲染操作区 -->
+      <div v-if="post"> 
+        <button @click.stop="toggleLike(post.id)" class="flex items-center">
+          <span :class="post?.isLiked ? 'text-red-500' : 'text-gray-600'">❤</span>
+          <span class="ml-1">{{ post?.likes || 0 }} Likes</span>
+        </button>
+        <span>{{ post?.comments?.length || 0 }} Comments</span>
+        <span>{{ formatDate(post?.date) }}</span>
+        
+        <!-- 作者操作区 -->
+        <div v-if="loginStore.userInfo?.id === post.authorId" class="ml-auto">
+          <button @click.stop="handleDelete(post.id)" class="text-red-500 hover:text-red-700 text-sm">
+            删除
+          </button>
+        </div>
+        
+        <!-- 举报按钮 -->
+        <button 
+          v-if="loginStore.token && loginStore.userInfo?.id !== post.authorId"
+          @click.stop="openReportModal(post.id)" 
+          class="text-yellow-500 hover:text-yellow-700 text-sm ml-2"
+        >
+          举报
+        </button>
+      </div>
+    </div>
+
+    <!-- 举报弹窗 -->
+    <div v-if="showReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-bold mb-4">举报帖子</h3>
+        <textarea 
+          v-model="reportReason" 
+          class="w-full p-2 border border-gray-300 rounded mb-4"
+          rows="3"
+          placeholder="请输入举报理由..."
+        ></textarea>
+        <div class="flex justify-end space-x-2">
+          <button @click="showReportModal = false" class="px-4 py-2 border border-gray-300 rounded">取消</button>
+          <button @click="handleReport" class="px-4 py-2 bg-red-500 text-white rounded">提交举报</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -104,12 +157,47 @@
 import { ref, onMounted, computed } from 'vue';
 import { usePostStore } from '@/store/postStore';
 import { useRouter } from 'vue-router';
-import { useLoginStore } from '@/store/loginStore';  // 引入登录状态
+import { useLoginStore } from '@/store/loginStore';  
 
 const postStore = usePostStore();
 const router = useRouter();
-const loginStore = useLoginStore();  // 实例化登录store
+const loginStore = useLoginStore();  
 const activeType = ref('all');
+const showReportModal = ref(false);
+const reportReason = ref('');
+const currentReportPostId = ref(null);
+
+// 处理删除
+const handleDelete = async (postId) => {
+  if (confirm('确定要删除这篇帖子吗？')) {
+    await postStore.deletePost(postId);
+    // 删除后重新拉取数据（可选，确保界面更新）
+    fetchPosts(activeType.value);
+  }
+};
+
+// 打开举报弹窗
+const openReportModal = (postId) => {
+  currentReportPostId.value = postId;
+  reportReason.value = '';
+  showReportModal.value = true;
+};
+
+// 处理举报
+const handleReport = async () => {
+  if (!reportReason.value.trim()) {
+    alert('请输入举报理由');
+    return;
+  }
+  
+  const success = await postStore.reportPost(currentReportPostId.value, reportReason.value);
+  if (success) {
+    alert('举报已提交，感谢您的反馈');
+    showReportModal.value = false;
+  } else {
+    alert('举报提交失败，请稍后重试');
+  }
+};
 
 // 日期格式化（复用Discover.vue逻辑）
 const formatDate = (dateString) => {
@@ -132,7 +220,7 @@ const toggleLike = (postId) => {
 // 获取帖子列表（支持videos类型）
 const fetchPosts = (type) => {
   activeType.value = type;
-  postStore.fetchPosts(type);  // 调用store方法，后端会返回对应类型数据
+  postStore.fetchPosts(type);  
 };
 
 // 页面加载时获取所有帖子

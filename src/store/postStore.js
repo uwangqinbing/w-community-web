@@ -66,6 +66,46 @@ export const usePostStore = defineStore('postStore', {
       }
     },
 
+    // 删除帖子
+    async deletePost(postId) {
+      const loginStore = useLoginStore();
+      if (!loginStore.token) {
+        loginStore.openLoginModal();
+        return Promise.reject(new Error('请先登录'));
+      }
+
+      try {
+        await api.delete(`/api/posts/${postId}`);
+        // 从列表中移除删除的帖子
+        this.posts = this.posts.filter(post => post.id !== postId);
+        // 如果删除的是当前查看的帖子，清除当前帖子数据
+        if (this.currentPost?.id === postId) {
+          this.currentPost = null;
+        }
+        return true;
+      } catch (err) {
+        console.error('删除帖子失败:', err);
+        return false;
+      }
+    },
+
+    // 举报帖子
+    async reportPost(postId, reason) {
+      const loginStore = useLoginStore();
+      if (!loginStore.token) {
+        loginStore.openLoginModal();
+        return Promise.reject(new Error('请先登录'));
+      }
+
+      try {
+        await api.post(`/api/posts/${postId}/report`, { reason });
+        return true;
+      } catch (err) {
+        console.error('举报帖子失败:', err);
+        return false;
+      }
+    },
+
     clearCurrentPost() {
       this.currentPost = null;
     }

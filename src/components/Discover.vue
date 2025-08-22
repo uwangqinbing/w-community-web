@@ -1,6 +1,6 @@
 <template>
   <section class="p-4 md:p-8 w-full">
-    <!-- 筛选栏（保持不变） -->
+    <!-- 筛选栏 -->
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-xl font-bold text-gray-100">Discover</h2>
       <div class="flex space-x-2">
@@ -81,6 +81,25 @@
             </button>
             <span>{{ post.comments?.length || 0 }} Comments</span>
             <span>{{ formatDate(post.date) }}</span>
+            <!-- 添加删除和举报按钮 -->
+            <div class="ml-auto flex space-x-2">
+              <!-- 举报按钮 - 所有人可见 -->
+              <button 
+                @click.stop="handleReport(post.id)" 
+                class="text-sm text-gray-400 hover:text-red-400 transition-colors"
+              >
+                Report
+              </button>
+              
+              <!-- 删除按钮 - 仅作者可见 -->
+              <button 
+                @click.stop="handleDelete(post.id)" 
+                class="text-sm text-gray-400 hover:text-red-400 transition-colors"
+                v-if="isAuthor(post)"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </router-link>
@@ -90,9 +109,13 @@
 
 <script setup>
 import { usePostStore } from '@/store/postStore';
+import { useUserStore } from '@/store/userStore';
 import { onMounted, ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 const postStore = usePostStore();
+const userStore = useUserStore(); // 获取用户存储实例
+const router = useRouter();
 const activeTab = ref('all');
 
 onMounted(() => {
@@ -109,7 +132,9 @@ const filteredPosts = computed(() => {
   }
   return postStore.posts.filter(post => post.type === activeTab.value);
 });
-
+const isAuthor = (post) => {
+  return userStore.user?.id && post.author?.id && userStore.user.id === post.author.id;
+};
 const formatDate = (dateString) => {
   if (!dateString) return ''; // 处理日期为空的情况
   const date = new Date(dateString);
@@ -124,6 +149,30 @@ const formatDate = (dateString) => {
 
 const toggleLike = (postId) => {
   postStore.toggleLike(postId);
+};
+const handleDelete = async (postId) => {
+  if (confirm('Are you sure you want to delete this post?')) {
+    try {
+      await postStore.deletePost(postId);
+      // 删除成功后重新获取帖子列表
+      postStore.fetchPosts(activeTab.value);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  }
+};
+
+// 处理举报帖子
+const handleReport = async (postId) => {
+  if (confirm('Report this post? This action cannot be undone.')) {
+    try {
+      await postStore.reportPost(postId);
+      alert('Post reported successfully');
+    } catch (error) {
+      console.error('Error reporting post:', error);
+      alert('Failed to report post');
+    }
+  }
 };
 </script>
 
