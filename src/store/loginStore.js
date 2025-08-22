@@ -5,7 +5,7 @@ export const useLoginStore = defineStore('loginStore', {
   state: () => ({
     showLoginModal: false,
     userInfo: null,
-    token: null,
+    token: localStorage.getItem('token') || null,
     loginError: null
   }),
   actions: {
