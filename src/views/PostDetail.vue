@@ -19,7 +19,7 @@
       <span class="block sm:inline">{{ postStore.error }}</span>
     </div>
 
-    <!-- Post Content（外层div包裹所有内容，修复嵌套） -->
+    <!-- Post Content -->
     <div v-show="postStore.currentPost && !postStore.isLoading" class="bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Post Header -->
       <div class="p-6">
@@ -36,16 +36,11 @@
         </div>
         <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ postStore.currentPost?.title }}</h1>
 
-        <!-- 修复 tags 遍历 -->
+        <!-- Tags -->
         <div class="flex flex-wrap gap-2 mb-6" v-if="postStore.currentPost?.tags && postStore.currentPost?.tags.length > 0">
           <span v-for="tag in postStore.currentPost?.tags" :key="tag" class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
             {{ tag }}
           </span>
-        </div>
-
-        <!-- 新增：临时调试输出（放在图片上方） -->
-        <div v-if="postStore.currentPost" style="display: none;">
-          {{ console.log('当前图片路径:', `/public/${postStore.currentPost.image}`) }}
         </div>
 
         <img 
@@ -53,7 +48,7 @@
           :src="`/public/${postStore.currentPost?.image}`" 
           :alt="`Image for ${postStore.currentPost?.title}`" 
           class="w-full h-64 object-cover rounded-lg mb-6"
-          @error="(e) => console.log('图片加载失败，路径:', e.target.src)"
+          @error="handleImageError"
         >
 
         <video 
@@ -72,15 +67,15 @@
         </div>
       </div>
 
-      <!-- Post Actions（删除/举报按钮放入该容器，修复嵌套） -->
+      <!-- Post Actions -->
       <div class="px-6 pb-6 flex items-center justify-between border-t border-gray-200 pt-4">
-        <!-- 点赞按钮 -->
+        <!-- Like Button -->
         <button @click.stop="toggleLike" class="flex items-center">
           <span :class="postStore.currentPost?.isLiked ? 'text-red-500' : 'text-gray-500'">❤</span>
           <span class="ml-1" :style="{ color: '#000' }">{{ postStore.currentPost?.likes }} Likes</span>
         </button>
 
-        <!-- 评论按钮（保留原有） -->
+        <!-- Comment Button -->
         <button class="flex items-center text-gray-500 hover:text-blue-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM6 10a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm-8 4a2 2 0 100-4 2 2 0 000 4zm8 0a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -88,19 +83,19 @@
           <span>{{ postStore.currentPost?.comments?.length }}</span>
         </button>
 
-        <!-- 新增删除按钮（仅作者可见，放入Actions容器） -->
+        <!-- Delete Post Button -->
         <button 
           v-if="isAuthor"
-          @click="handleDelete" 
+          @click="handleDeletePost" 
           class="flex items-center text-red-500 hover:text-red-700 mr-4"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
           </svg>
-          删除
+          删除帖子
         </button>
 
-        <!-- 新增举报按钮（放入Actions容器） -->
+        <!-- Report Button -->
         <button 
           v-if="loginStore.token"
           @click="openReportModal" 
@@ -113,7 +108,7 @@
         </button>
       </div>
 
-      <!-- Comments Section（放入Post Content外层div内部，修复嵌套） -->
+      <!-- Comments Section -->
       <div class="px-6 pb-6">
         <h2 class="text-xl font-bold mb-4">Comments</h2>
 
@@ -129,7 +124,6 @@
           </button>
         </div>
 
-        <!-- 新增：未登录时提示登录 -->
         <div v-else class="mb-6 text-gray-500">
           <button @click="loginStore.openLoginModal()" class="text-blue-500">
             登录后可评论
@@ -137,10 +131,9 @@
         </div>
 
         <div class="space-y-4">
-          <!-- 评论项样式修改 -->
+          <!-- Comment Items with Delete Button -->
           <div v-for="comment in postStore.currentPost?.comments" :key="comment?.id" class="border-b border-gray-100 pb-4 pt-2">
             <div class="flex items-start">
-              <!-- 评论者头像 -->
               <img 
                 :src="comment.authorAvatar || '/OIP-C.webp'" 
                 alt="Comment author avatar" 
@@ -151,8 +144,16 @@
                   <h4 class="font-bold text-gray-900 text-sm">{{ comment?.author }}</h4>
                   <p class="text-xs text-gray-500">{{ comment?.date }}</p>
                 </div>
-                <!-- 评论内容单独成行并添加样式 -->
                 <p class="text-base text-gray-800 mt-1 leading-relaxed">{{ comment?.content }}</p>
+                
+                <!-- Comment Delete Button -->
+                <button 
+                  v-if="isCommentAuthor(comment)"
+                  @click.stop="handleDeleteComment(comment.id)"
+                  class="mt-1 text-red-500 text-xs hover:underline"
+                >
+                  删除评论
+                </button>
               </div>
             </div>
           </div>
@@ -162,9 +163,9 @@
           </div>
         </div>
       </div>
-    </div> <!-- Post Content 外层div 正确闭合 -->
+    </div>
 
-    <!-- 举报弹窗（放在Post Content外层div外部，位置正确） -->
+    <!-- Report Modal -->
     <div v-if="showReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 class="text-lg font-bold mb-4">举报帖子</h3>
@@ -184,44 +185,71 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePostStore } from '@/store/postStore';
 import { useMeta } from 'vue-meta';
 import { useLoginStore } from '@/store/loginStore';
 import { api } from '@/api/index.js';
-import { computed } from 'vue'; 
 
 const router = useRouter();
 const postStore = usePostStore();
 const loginStore = useLoginStore();
 const { id } = router.currentRoute.value.params;
 
+// 现有变量
 const showReportModal = ref(false);
 const reportReason = ref('');
+const commentContent = ref('');
+
+// 计算属性：判断是否为帖子作者
 const isAuthor = computed(() => {
   return loginStore.userInfo?.id === postStore.currentPost?.authorId;
 });
 
-// 处理删除
-const handleDelete = async () => {
-  if (confirm('确定要删除这篇帖子吗？')) {
-    const success = await postStore.deletePost(Number(id));
-    if (success) {
-      router.push('/'); // 删除成功后返回首页
-    } else {
-      alert('删除失败，请稍后重试');
+// 方法：判断是否为评论作者
+const isCommentAuthor = (comment) => {
+  return loginStore.userInfo?.username === comment.author;
+};
+
+// 帖子删除处理
+const handleDeletePost = async () => {
+  if (confirm('确定要删除这篇帖子吗？此操作不可撤销。')) {
+    try {
+      const success = await postStore.deletePost(Number(id));
+      if (success) {
+        router.push('/');
+      } else {
+        alert('删除失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('删除帖子失败:', error);
+      alert('删除失败：' + (error.response?.data?.error || '网络错误'));
     }
   }
 };
 
-// 打开举报弹窗
+// 评论删除处理
+const handleDeleteComment = async (commentId) => {
+  if (confirm('确定要删除这条评论吗？')) {
+    try {
+      const success = await postStore.deleteComment(Number(id), commentId);
+      if (!success) {
+        alert('删除评论失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('删除评论失败:', error);
+      alert('删除评论失败：' + (error.response?.data?.error || '网络错误'));
+    }
+  }
+};
+
+// 原有方法保持不变
 const openReportModal = () => {
   showReportModal.value = true;
   reportReason.value = '';
 };
 
-// 处理举报
 const handleReport = async () => {
   if (!reportReason.value.trim()) {
     alert('请输入举报理由');
@@ -242,8 +270,6 @@ const handleImageError = (e) => {
   e.target.src = '/OIP-C.webp'; 
 };
 
-const commentContent = ref('');
-
 const addComment = async () => {
   if (!commentContent.value.trim()) {
     alert('评论内容不能为空');
@@ -255,7 +281,7 @@ const addComment = async () => {
     });
     postStore.currentPost.comments.push(res.data);
     commentContent.value = '';
-    alert('评论成功');  // 增加成功提示
+    alert('评论成功');
   } catch (err) {
     console.error('评论失败:', err);
     alert(`评论失败：${err.response?.data?.error || '网络异常，请重试'}`);
@@ -306,7 +332,6 @@ button:hover {
   color: #333;
 }
 
-/* 评论内容样式优化 */
 .comment-content {
   font-size: 16px;
   color: #2d3748;

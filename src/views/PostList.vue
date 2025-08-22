@@ -90,12 +90,18 @@
           <!-- 互动数据（与Discover.vue一致 + 判空保护） -->
           <div class="flex items-center mt-2 space-x-4 text-gray-300">
             <button @click.stop="toggleLike(post.id)" class="flex items-center">
-              <!-- 修复：post?.isLiked 避免 undefined 报错 -->
               <span :class="post?.isLiked ? 'text-red-500' : 'text-gray-600'">❤</span>
               <span class="ml-1">{{ post?.likes || 0 }} Likes</span>
             </button>
             <span>{{ post?.comments?.length || 0 }} Comments</span>
             <span>{{ formatDate(post?.date) }}</span>
+            <button 
+              v-if="post.authorId === loginStore.userInfo?.id"
+              @click.stop="handleDeletePost(post.id)"
+              class="text-red-500 text-sm hover:underline"
+            >
+             删除
+            </button>
           </div>
         </div>
       </router-link>
@@ -227,6 +233,15 @@ const fetchPosts = (type) => {
 onMounted(() => {
   fetchPosts('all');
 });
+
+const handleDeletePost = async (postId) => {
+  if (confirm('确定要删除这篇帖子吗？此操作不可撤销。')) {
+    const success = await postStore.removePost(postId);
+    if (success) {
+      // 可选择显示删除成功提示
+    }
+  }
+};
 </script>
 
 <style scoped>

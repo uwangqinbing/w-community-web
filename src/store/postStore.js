@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from '@/api/index.js';
+import { api } from '@/api/index.js';  // 保持原有导入方式
 import { useLoginStore } from './loginStore';
 
 export const usePostStore = defineStore('postStore', {
@@ -66,7 +66,7 @@ export const usePostStore = defineStore('postStore', {
       }
     },
 
-    // 删除帖子
+    // 删除帖子（保留你已有的实现）
     async deletePost(postId) {
       const loginStore = useLoginStore();
       if (!loginStore.token) {
@@ -89,7 +89,32 @@ export const usePostStore = defineStore('postStore', {
       }
     },
 
-    // 举报帖子
+    // 新增：删除评论功能（仅添加此方法，不修改原有代码）
+    async deleteComment(postId, commentId) {
+      const loginStore = useLoginStore();
+      if (!loginStore.token) {
+        loginStore.openLoginModal();
+        return Promise.reject(new Error('请先登录'));
+      }
+
+      try {
+        // 调用删除评论接口
+        await api.delete(`/api/posts/${postId}/comments/${commentId}`);
+
+        // 更新当前帖子的评论列表（不影响其他功能）
+        if (this.currentPost && this.currentPost.comments) {
+          this.currentPost.comments = this.currentPost.comments.filter(
+            comment => comment.id !== commentId
+          );
+        }
+        return true;
+      } catch (err) {
+        console.error('删除评论失败:', err);
+        return false;
+      }
+    },
+
+    // 举报帖子（保留原有实现）
     async reportPost(postId, reason) {
       const loginStore = useLoginStore();
       if (!loginStore.token) {

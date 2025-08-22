@@ -35,4 +35,12 @@ api.interceptors.response.use(
     }
 );
 
+export const deletePost = (postId) => {
+    return api.delete(`/api/posts/${postId}`);
+};
+
+export const deleteComment = (postId, commentId) => {
+    return api.delete(`/api/posts/${postId}/comments/${commentId}`);
+};
+
 export { api };
