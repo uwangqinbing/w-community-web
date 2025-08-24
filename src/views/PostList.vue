@@ -107,39 +107,6 @@
       </router-link>
     </div>
 
-    <!-- 操作区（删除、举报按钮 + 判空保护） -->
-    <div 
-      v-for="post in postStore.posts" 
-      :key="post.id" 
-      class="flex items-center mt-2 space-x-4 text-gray-300"
-    >
-      <!-- 确保 post 存在再渲染操作区 -->
-      <div v-if="post"> 
-        <button @click.stop="toggleLike(post.id)" class="flex items-center">
-          <span :class="post?.isLiked ? 'text-red-500' : 'text-gray-600'">❤</span>
-          <span class="ml-1">{{ post?.likes || 0 }} Likes</span>
-        </button>
-        <span>{{ post?.comments?.length || 0 }} Comments</span>
-        <span>{{ formatDate(post?.date) }}</span>
-        
-        <!-- 作者操作区 -->
-        <div v-if="loginStore.userInfo?.id === post.authorId" class="ml-auto">
-          <button @click.stop="handleDelete(post.id)" class="text-red-500 hover:text-red-700 text-sm">
-            删除
-          </button>
-        </div>
-        
-        <!-- 举报按钮 -->
-        <button 
-          v-if="loginStore.token && loginStore.userInfo?.id !== post.authorId"
-          @click.stop="openReportModal(post.id)" 
-          class="text-yellow-500 hover:text-yellow-700 text-sm ml-2"
-        >
-          举报
-        </button>
-      </div>
-    </div>
-
     <!-- 举报弹窗 -->
     <div v-if="showReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-lg p-6 w-full max-w-md">
