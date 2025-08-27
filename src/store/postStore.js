@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
-import { api } from '@/api/index.js';  // 保持原有导入方式
+import { api } from '@/api/index.js';
 import { useLoginStore } from './loginStore';
+import { getActivePinia } from 'pinia';
 
 export const usePostStore = defineStore('postStore', {
   state: () => ({
@@ -43,7 +44,8 @@ export const usePostStore = defineStore('postStore', {
 
     // 3. 点赞功能（调用后端接口）
     async toggleLike(postId) {
-      const loginStore = useLoginStore();
+      const pinia = getActivePinia();
+      const loginStore = useLoginStore(pinia);
       if (!loginStore.token) {
         loginStore.openLoginModal();
         return Promise.reject(new Error('请先登录'));
@@ -51,7 +53,6 @@ export const usePostStore = defineStore('postStore', {
 
       try {
         const res = await api.post(`/api/posts/${postId}/like`);
-        // 更新本地状态
         const post = this.posts.find(p => p.id === postId);
         if (post) {
           post.likes = res.data.likes;
@@ -66,9 +67,11 @@ export const usePostStore = defineStore('postStore', {
       }
     },
 
-    // 删除帖子（保留你已有的实现）
+    // 删除帖子
     async deletePost(postId) {
-      const loginStore = useLoginStore();
+      const pinia = getActivePinia();
+      const loginStore = useLoginStore(pinia);
+
       if (!loginStore.token) {
         loginStore.openLoginModal();
         return Promise.reject(new Error('请先登录'));
@@ -76,9 +79,7 @@ export const usePostStore = defineStore('postStore', {
 
       try {
         await api.delete(`/api/posts/${postId}`);
-        // 从列表中移除删除的帖子
         this.posts = this.posts.filter(post => post.id !== postId);
-        // 如果删除的是当前查看的帖子，清除当前帖子数据
         if (this.currentPost?.id === postId) {
           this.currentPost = null;
         }
@@ -89,19 +90,18 @@ export const usePostStore = defineStore('postStore', {
       }
     },
 
-    // 新增：删除评论功能（仅添加此方法，不修改原有代码）
     async deleteComment(postId, commentId) {
-      const loginStore = useLoginStore();
+      const pinia = getActivePinia();
+      const loginStore = useLoginStore(pinia);
+
       if (!loginStore.token) {
         loginStore.openLoginModal();
         return Promise.reject(new Error('请先登录'));
       }
 
       try {
-        // 调用删除评论接口
         await api.delete(`/api/posts/${postId}/comments/${commentId}`);
 
-        // 更新当前帖子的评论列表（不影响其他功能）
         if (this.currentPost && this.currentPost.comments) {
           this.currentPost.comments = this.currentPost.comments.filter(
             comment => comment.id !== commentId
@@ -114,9 +114,10 @@ export const usePostStore = defineStore('postStore', {
       }
     },
 
-    // 举报帖子（保留原有实现）
+    // 举报帖子
     async reportPost(postId, reason) {
-      const loginStore = useLoginStore();
+      const pinia = getActivePinia();
+      const loginStore = useLoginStore(pinia);
       if (!loginStore.token) {
         loginStore.openLoginModal();
         return Promise.reject(new Error('请先登录'));

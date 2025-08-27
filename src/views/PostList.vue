@@ -229,15 +229,15 @@ button:hover {
 img[alt$="avatar"] {
   box-sizing: border-box;
 }
-::v-deep .rounded-full {
+::deep(.rounded-full) {
   border-radius: 9999px !important;
 }
 
 /* 确保宽高严格相等（针对头像） */
-::v-deep .w-10 {
+::deep(.w-10) {
   width: 2.5rem !important;
 }
-::v-deep .h-10 {
+::deep(.h-10) {
   height: 2.5rem !important;
 }
 </style>

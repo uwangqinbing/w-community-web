@@ -17,7 +17,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
 
 // 接收路由参数
 const props = defineProps({

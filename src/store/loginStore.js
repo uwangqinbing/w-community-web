@@ -22,6 +22,7 @@ export const useLoginStore = defineStore('loginStore', {
         const res = await api.post('/api/login', credentials);
         this.token = res.data.token;
         this.userInfo = res.data.user;
+        localStorage.setItem('token', res.data.token);
         this.closeLoginModal();
         return res.data.user;
       } catch (err) {
@@ -35,6 +36,7 @@ export const useLoginStore = defineStore('loginStore', {
         const res = await api.post('/api/register', credentials);
         this.token = res.data.token;
         this.userInfo = res.data.user;
+        localStorage.setItem('token', res.data.token);
         this.closeLoginModal();
         return res.data.user;
       } catch (err) {
@@ -45,6 +47,7 @@ export const useLoginStore = defineStore('loginStore', {
     logout() {
       this.userInfo = null;
       this.token = null;
+      localStorage.removeItem('token');
     }
   },
   persist: true

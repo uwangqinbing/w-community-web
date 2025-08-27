@@ -37,7 +37,6 @@
 <script setup>
 import { ref } from 'vue';
 import { useLoginStore } from '@/store/loginStore';
-import { defineEmits, defineProps } from 'vue';
 
 const loginStore = useLoginStore();
 const emit = defineEmits(['close']);

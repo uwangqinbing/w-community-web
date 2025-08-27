@@ -1,19 +1,20 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">Create New Post</h1>
+    <!-- 标题国际化 -->
+    <h1 class="text-2xl font-bold mb-6">{{ $t('createPost.title') }}</h1>
 
-    <!-- 未登录时提示 -->
+    <!-- 未登录时提示（国际化） -->
     <div v-if="!loginStore.token" class="text-center py-8">
-      <p>请先登录才能发帖</p>
+      <p>{{ $t('createPost.loginPrompt') }}</p>
       <button @click="loginStore.openLoginModal()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-        登录
+        {{ $t('header.signIn') }}
       </button>
     </div>
 
     <!-- 发帖表单（登录后显示） -->
     <form v-else @submit.prevent="handleSubmit" class="max-w-2xl mx-auto">
       <div class="mb-4">
-        <label class="block mb-2">Title</label>
+        <label class="block mb-2">{{ $t('createPost.form.title') }}</label>
         <input 
           v-model="title" 
           class="w-full p-2 border border-gray-300 rounded text-black"
@@ -22,7 +23,7 @@
       </div>
 
       <div class="mb-4">
-        <label class="block mb-2">Content</label>
+        <label class="block mb-2">{{ $t('createPost.form.content') }}</label>
         <textarea 
           v-model="content" 
           class="w-full p-2 border border-gray-300 rounded text-black"
@@ -32,25 +33,25 @@
       </div>
 
       <div class="mb-4">
-        <label class="block mb-2">Tags (comma separated)</label>
+        <label class="block mb-2">{{ $t('createPost.form.tags') }}</label>
         <input 
           v-model="tags" 
           class="w-full p-2 border border-gray-300 rounded text-black" 
-          placeholder="e.g., led, review, govee"
+          :placeholder="$t('createPost.form.tagsPlaceholder')"
         >
       </div>
 
       <div class="mb-4">
-        <label class="block mb-2">Type</label>
+        <label class="block mb-2">{{ $t('createPost.form.type') }}</label>
         <select v-model="type" class="w-full p-2 border border-gray-300 rounded text-black">
-          <option value="posts">Post</option>
-          <option value="questions">Question</option>
-          <option value="videos">Video</option>
+          <option value="posts">{{ $t('createPost.form.postOption') }}</option>
+          <option value="questions">{{ $t('createPost.form.questionOption') }}</option>
+          <option value="videos">{{ $t('createPost.form.videoOption') }}</option>
         </select>
       </div>
 
       <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">
-        Publish Post
+        {{ $t('createPost.form.publish') }}
       </button>
     </form>
   </div>
@@ -62,10 +63,10 @@ import { useLoginStore } from '@/store/loginStore';
 import { useRouter } from 'vue-router';
 import { api } from '@/api/index.js';
 
+// 原有逻辑完全不变
 const loginStore = useLoginStore();
 const router = useRouter();
 
-// 表单数据
 const title = ref('');
 const content = ref('');
 const tags = ref('');
@@ -82,7 +83,6 @@ const handleSubmit = async () => {
       authorAvatar: loginStore.userInfo.avatar || '/OIP-C.webp', 
       date: new Date().toISOString().split('T')[0]
     });
-    // 发帖成功后跳回帖子列表
     router.push('/');
   } catch (err) {
     console.error('发帖失败:', err);

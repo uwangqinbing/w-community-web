@@ -3,9 +3,9 @@
     <!-- Topics Section -->
     <div class="mb-8 border border-gray-700 rounded-lg p-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-bold text-white">Topics</h3>
+        <h3 class="text-lg font-bold text-white">{{ $t('sidebar.topics') }}</h3>
         <button class="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-          View All
+          {{ $t('sidebar.viewAll') }}
         </button>
       </div>
       <ul>
@@ -18,7 +18,7 @@
         </li>
         <!-- Shuffle 按钮（可点击刷新） -->
         <div @click="shuffleTopics" class="mt-2 text-sm text-blue-400 text-right cursor-pointer hover:text-blue-300 transition-colors">
-          Shuffle <span class="opacity-70">({{ currentPage }}/3)</span>
+          {{ $t('sidebar.shuffle') }} <span class="opacity-70">({{ currentPage }}/3)</span>
         </div>
       </ul>
     </div>
@@ -26,9 +26,9 @@
     <!-- Clubs Section -->
     <div class="border border-gray-700 rounded-lg p-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-bold text-white">Clubs</h3>
+        <h3 class="text-lg font-bold text-white">{{ $t('sidebar.clubs') }}</h3>
         <button class="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-          More
+          {{ $t('sidebar.more') }}
         </button>
       </div>
       <ul>
@@ -36,7 +36,7 @@
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-300">Government Activity Board</span>
             <div class="flex items-center">
-              <span class="text-xs text-gray-400 mr-2">32.7k members</span>
+              <span class="text-xs text-gray-400 mr-2">32.7k {{ $t('sidebar.members') }}</span>
               <button class="px-2 py-1 text-xs text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors">+</button>
             </div>
           </div>
@@ -45,7 +45,7 @@
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-300">Outdoor Lighting Decor</span>
             <div class="flex items-center">
-              <span class="text-xs text-gray-400 mr-2">2,660 members</span>
+              <span class="text-xs text-gray-400 mr-2">2,660 {{ $t('sidebar.members') }}</span>
               <button class="px-2 py-1 text-xs text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors">+</button>
             </div>
           </div>
@@ -54,7 +54,7 @@
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-300">Let's Make It Movie Night</span>
             <div class="flex items-center">
-              <span class="text-xs text-gray-400 mr-2">2,520 members</span>
+              <span class="text-xs text-gray-400 mr-2">2,520 {{ $t('sidebar.members') }}</span>
               <button class="px-2 py-1 text-xs text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors">+</button>
             </div>
           </div>
@@ -63,7 +63,7 @@
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-300">Show Off Your Gaming Setup</span>
             <div class="flex items-center">
-              <span class="text-xs text-gray-400 mr-2">1,620 members</span>
+              <span class="text-xs text-gray-400 mr-2">1,620 {{ $t('sidebar.members') }}</span>
               <button class="px-2 py-1 text-xs text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors">+</button>
             </div>
           </div>
@@ -72,7 +72,7 @@
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-300">Govee Light Festival</span>
             <div class="flex items-center">
-              <span class="text-xs text-gray-400 mr-2">17.5k members</span>
+              <span class="text-xs text-gray-400 mr-2">17.5k {{ $t('sidebar.members') }}</span>
               <button class="px-2 py-1 text-xs text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors">+</button>
             </div>
           </div>

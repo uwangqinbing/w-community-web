@@ -15,7 +15,7 @@
             @input="handleInput" 
             @focus="showSearchResults = true"
             @keydown.enter="handleSearchSubmit" 
-            placeholder="Search for posts,topics,and users"
+            :placeholder="$t('header.searchPlaceholder')"
             class="w-full py-2 px-4 pr-10 rounded-full border border-gray-600 
                    focus:outline-none focus:ring-2 focus:ring-blue-500 
                    text-white bg-gray-800" 
@@ -48,31 +48,34 @@
           v-if="showSearchResults && searchResults.length === 0 && searchQuery" 
           class="absolute z-10 mt-2 w-full bg-gray-800 shadow-lg rounded-lg p-3 text-gray-400"
         >
-          没有找到与「{{ searchQuery }}」相关的内容
+          {{ $t('header.noSearchResults', { query: searchQuery }) }}  <!-- 2. 无搜索结果提示国际化 -->
         </div>
       </div>
 
       <!-- 用户操作区域 -->
       <div class="flex items-center space-x-4">
+        <!-- 3. 语言切换器 -->
+        <LanguageSwitcher />
+        
         <button 
           v-if="!userInfo" 
           @click="loginStore.openLoginModal()" 
           class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full hover:from-blue-600 hover:to-cyan-600"
         >
-          Sign in
+          {{ $t('header.signIn') }}  <!-- 4. 登录按钮国际化 -->
         </button>
         <button 
           v-if="userInfo" 
           @click="handleLogout" 
           class="px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-full hover:from-red-600 hover:to-orange-600"
         >
-          Sign out
+          {{ $t('header.signOut') }}  <!-- 5. 退出按钮国际化 -->
         </button>
         <button 
           v-if="userInfo" 
           class="px-4 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-full hover:from-green-600 hover:to-teal-600"
         >
-          Post
+          {{ $t('header.post') }}  <!-- 6. 发帖按钮国际化 -->
         </button>
         <!-- 用户信息：头像+用户名 -->
         <div v-if="userInfo" class="flex items-center space-x-2">
@@ -99,11 +102,14 @@ import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLoginStore } from '@/store/loginStore';
 import { useSearchStore } from '@/store/searchStore';
+import { useI18n } from 'vue-i18n';
 import LoginModal from './LoginModal.vue';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 const router = useRouter();
 const loginStore = useLoginStore();
 const searchStore = useSearchStore();
+const { t } = useI18n();  // 9. 获取t函数
 
 const searchQuery = ref('');
 const showSearchResults = ref(false);
